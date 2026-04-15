@@ -2,14 +2,12 @@ use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 use std::time::Instant;
 use clap::Parser;
+use num_format::{Locale, ToFormattedString};
 
 #[derive(Parser, Debug)]
 #[command(name = "Bogo sort benchmark")]
 #[command(about = "benchmark your computer by running bogo-sort algorithm")]
 struct Args {
-    #[arg(short = 'b', long = "blocksize", default_value_t = 7, help = "The length of splited array")]
-    block_size: i32,
-
     #[arg(short = 'l', long = "length", default_value_t = 50_000_000, help = "The length of the array to be sorted")]
     length: i32,
 
@@ -18,6 +16,11 @@ struct Args {
 
     #[arg(short = 'r', long = "norate", help = "DO NOT show realtime rate and ETA in progressbar")]
     rate: bool
+}
+
+pub fn advanced_round(value: f64, decimal: i32) -> f64 {
+    let factor = 10_f64.powi(decimal);
+    (value * factor).round() / factor
 }
 
 fn format_rate(v: f64) -> String {
@@ -174,15 +177,16 @@ fn generate_vec(len: usize) -> Vec<f64> {
 // main
 #[tokio::main]
 async fn main() {
-    let start = Instant::now();
-
     let args = Args::parse();
 
-    let blocksize = args.block_size;
+    let blocksize = 7;
     let arrlength = args.length;
 
     println!("generating array");
     let la = generate_vec(arrlength as usize);
+
+    let start = Instant::now();
+
     println!("spliting array");
     let arrays = split_vec(la, blocksize as i64);
 
@@ -257,7 +261,16 @@ async fn main() {
             eprintln!("Error: Sorted array is still not ordered");
         }
         println!("\n----- Benchmark completed -----");
-        println!("Total Duration: {}ms\nSorting Duration: {}ms", start.elapsed().as_millis(), sorting_elapsed);
+        let total_elapsed = start.elapsed().as_millis();
+        print!("Total Duration: {}ms, Sorting Duration: {}ms", total_elapsed, sorting_elapsed);
+        let splited_arrays_num = ((arrlength as f64) / (blocksize as f64)).ceil();
+        let ass = splited_arrays_num / ((sorting_elapsed as f64) / 1000.0);
+        let fass = ((advanced_round(ass, 3).floor()) as i64).to_formatted_string(&Locale::en);
+
+        let tss = splited_arrays_num / ((total_elapsed as f64) / 1000.0);
+        let ftss = ((advanced_round(tss, 3).floor()) as i64).to_formatted_string(&Locale::en);
+        
+        println!("sorted arrays: {}\nsplited array sorting speed: {} arrays/s\noverall full array sorting speed: {} arrays/s",splited_arrays_num, fass, ftss);
     }
 
 }
