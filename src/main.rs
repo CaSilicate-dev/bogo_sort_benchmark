@@ -252,6 +252,7 @@ async fn main() {
         let sorting_elapsed = start_sorting.elapsed().as_millis();
         println!("merging splited arrays");
         let result: Vec<f64> = parallel_merge(x);
+        let total_elapsed = start.elapsed().as_millis();
         
         println!("validating");
         let valid = valid_order_pb(&result);
@@ -261,7 +262,7 @@ async fn main() {
             eprintln!("Error: Sorted array is still not ordered");
         }
         println!("\n----- Benchmark completed -----");
-        let total_elapsed = start.elapsed().as_millis();
+        
         print!("Total Duration: {}ms, Sorting Duration: {}ms", total_elapsed, sorting_elapsed);
         let splited_arrays_num = ((arrlength as f64) / (blocksize as f64)).ceil();
         let ass = splited_arrays_num / ((sorting_elapsed as f64) / 1000.0);
