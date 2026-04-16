@@ -15,7 +15,10 @@ struct Args {
     stress: bool,
 
     #[arg(short = 'r', long = "norate", help = "DO NOT show realtime rate and ETA in progressbar")]
-    rate: bool
+    rate: bool,
+
+    #[arg(short = 'b', long = "blocksize", default_value_t = 7)]
+    block_size: i32,
 }
 
 pub fn advanced_round(value: f64, decimal: i32) -> f64 {
@@ -62,7 +65,7 @@ fn parallel_merge(mut vecs: Vec<Vec<f64>>) -> Vec<f64> {
         let pb = ProgressBar::new((vecs.len() as u64) / 2);
         pb.set_style(
             ProgressStyle::with_template(
-    "[{bar:50.green/blue}] {pos}/{len}",
+    "[{elapsed}] [{bar:50.green/blue}] {pos}/{len}",
             )
             .unwrap()
             .progress_chars("=> "),
@@ -110,7 +113,7 @@ fn valid_order_pb(a: &Vec<f64>) -> bool {
     let pb = ProgressBar::new(a.len() as u64);
     pb.set_style(
         ProgressStyle::with_template(
-"[{bar:50.green/blue}] {percent}%",
+"[{elapsed}] [{bar:50.green/blue}] {percent}%",
         )
         .unwrap()
         .progress_chars("=> "),
@@ -134,7 +137,7 @@ fn split_vec(v: Vec<f64>, bs: i64) -> Vec<Vec<f64>> {
     let pb = ProgressBar::new(total_chunks as u64);
     pb.set_style(
         ProgressStyle::with_template(
-"[{bar:50.green/blue}] {percent}%",
+"[{elapsed}] [{bar:50.green/blue}] {percent}%",
         )
         .unwrap()
         .progress_chars("=> "),
@@ -157,7 +160,7 @@ fn generate_vec(len: usize) -> Vec<f64> {
     let pb = ProgressBar::new(len as u64);
     pb.set_style(
         ProgressStyle::with_template(
-"[{bar:50.green/blue}] {percent}%",
+"[{elapsed}] [{bar:50.green/blue}] {percent}%",
         )
         .unwrap()
         .progress_chars("=> "),
@@ -179,7 +182,7 @@ fn generate_vec(len: usize) -> Vec<f64> {
 async fn main() {
     let args = Args::parse();
 
-    let blocksize = 7;
+    let blocksize = args.block_size;
     let arrlength = args.length;
 
     println!("generating array");
@@ -198,7 +201,7 @@ async fn main() {
             if !args.rate {
                 pb.set_style(
                 ProgressStyle::with_template(
-                    "[{bar:50.green/blue}] {percent}% eta:{eta} {msg}",
+                    "[{elapsed}] [{bar:50.green/blue}] {percent}% eta:{eta} {msg}",
                     )
                     .unwrap()
                     .progress_chars("=> "),
@@ -206,7 +209,7 @@ async fn main() {
             } else {
                 pb.set_style(
                 ProgressStyle::with_template(
-                    "[{bar:50.green/blue}] {percent}%",
+                    "[{elapsed}] [{bar:50.green/blue}] {percent}%",
                     )
                     .unwrap()
                     .progress_chars("=> "),
@@ -226,7 +229,7 @@ async fn main() {
             if !args.rate {
                 pb.set_style(
                 ProgressStyle::with_template(
-                    "[{bar:50.green/blue}] {percent}% eta:{eta} {msg}",
+                    "[{elapsed}] [{bar:50.green/blue}] {percent}% eta:{eta} {msg}",
                     )
                     .unwrap()
                     .progress_chars("=> "),
@@ -234,7 +237,7 @@ async fn main() {
             } else {
                 pb.set_style(
                 ProgressStyle::with_template(
-                    "[{bar:50.green/blue}] {percent}%",
+                    "[{elapsed}] [{bar:50.green/blue}] {percent}%",
                     )
                     .unwrap()
                     .progress_chars("=> "),
